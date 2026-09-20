@@ -24,6 +24,19 @@ namespace SubastaYa.Api.Controllers
             return Ok(categorias);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetCategoria(int id)
+        {
+            var categoria = await _context.Categorias.FindAsync(id);
+
+            if (categoria == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(categoria);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CrearCategoria(Categoria categoria)
         {
@@ -32,7 +45,7 @@ namespace SubastaYa.Api.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(
-                nameof(GetCategorias),
+                nameof(GetCategoria),
                 new { id = categoria.Id },
                 categoria);
         }
