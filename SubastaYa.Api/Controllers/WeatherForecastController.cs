@@ -48,6 +48,43 @@ namespace SubastaYa.Api.Controllers
                 nameof(GetCategoria),
                 new { id = categoria.Id },
                 categoria);
+
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ActualizarCategoria(int id, Categoria categoria)
+        {
+            var categoriaExistente = await _context.Categorias.FindAsync(id);
+
+            if (categoriaExistente == null)
+            {
+                return NotFound();
+            }
+
+            categoriaExistente.nombre = categoria.nombre;
+            categoriaExistente.url_icono = categoria.url_icono;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(categoriaExistente);
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> EliminarCategoria(int id)
+        {
+            var categoria = await _context.Categorias.FindAsync(id);
+
+            if (categoria == null)
+            {
+                return NotFound();
+            }
+
+            _context.Categorias.Remove(categoria);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+
+
     }
 }
