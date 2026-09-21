@@ -1,3 +1,4 @@
+
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Api.Data;
 using SubastaYa.Api.Servicios;
@@ -23,6 +24,16 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Inicializar datos de prueba si la base está vacía.
+using (var scope = app.Services.CreateScope())
+{
+    var context =
+        scope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+
+    await SeedData.InicializarAsync(context);
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -36,3 +47,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
