@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Api.Data;
 using SubastaYa.Api.Models;
+using SubastaYa.Api.Servicios;
 
 namespace SubastaYa.Api.Controllers
 {
@@ -10,10 +11,14 @@ namespace SubastaYa.Api.Controllers
     public class BilleterasController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly BilleteraService _billeteraService;
 
-        public BilleterasController(ApplicationDbContext context)
+        public BilleterasController(
+            ApplicationDbContext context,
+            BilleteraService billeteraService)
         {
             _context = context;
+            _billeteraService = billeteraService;
         }
 
         [HttpGet]
@@ -30,9 +35,7 @@ namespace SubastaYa.Api.Controllers
             var billetera = await _context.Billeteras.FindAsync(id);
 
             if (billetera == null)
-            {
                 return NotFound();
-            }
 
             return Ok(billetera);
         }
@@ -41,7 +44,6 @@ namespace SubastaYa.Api.Controllers
         public async Task<IActionResult> CrearBilletera(Billetera billetera)
         {
             _context.Billeteras.Add(billetera);
-
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(
@@ -51,14 +53,14 @@ namespace SubastaYa.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarBilletera(int id, Billetera billetera)
+        public async Task<IActionResult> ActualizarBilletera(
+            int id,
+            Billetera billetera)
         {
             var billeteraExistente = await _context.Billeteras.FindAsync(id);
 
             if (billeteraExistente == null)
-            {
                 return NotFound();
-            }
 
             billeteraExistente.usuario_id = billetera.usuario_id;
             billeteraExistente.saldo_total = billetera.saldo_total;
@@ -77,15 +79,33 @@ namespace SubastaYa.Api.Controllers
             var billetera = await _context.Billeteras.FindAsync(id);
 
             if (billetera == null)
-            {
                 return NotFound();
-            }
 
             _context.Billeteras.Remove(billetera);
-
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpPost("{id}/depositos")]
+        public async Task<IActionResult> Depositar(
+            int id,
+            [FromBody] decimal monto)
+        {
+            try
+            {
+                var billetera = await _billeteraService
+                    .DepositarAsync(id, monto);
+
+                return Ok(billetera);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    error = ex.Message
+                });
+            }
         }
     }
 }
