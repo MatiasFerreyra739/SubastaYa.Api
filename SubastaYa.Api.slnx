@@ -2,5 +2,6 @@
   <Folder Name="/Controllers/">
     <File Path="CategoriasController.cs" />
   </Folder>
+  <Project Path="SubastaYa.Api.Tests/SubastaYa.Api.Tests.csproj" Id="2672c2ac-3370-4121-a397-50c11043e779" />
   <Project Path="SubastaYa.Api/SubastaYa.Api.csproj" />
 </Solution>

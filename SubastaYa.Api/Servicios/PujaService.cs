@@ -189,6 +189,13 @@ namespace SubastaYa.Api.Servicios
                 // de la subasta para controlar concurrencia.
                 subasta.version++;
 
+                // Punto de sincronización utilizado únicamente
+                // durante la prueba de concurrencia.
+                if (ConcurrencyTestHook.OnSubastaLeida != null)
+                {
+                    await ConcurrencyTestHook.OnSubastaLeida();
+                }
+
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
