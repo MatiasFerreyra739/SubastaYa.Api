@@ -14,6 +14,10 @@ builder.Services.AddScoped<PujaService>();
 builder.Services.AddScoped<BilleteraService>();
 builder.Services.AddScoped<AuditoriaService>();
 
+// Worker que revisa y cierra automáticamente
+// las subastas vencidas.
+builder.Services.AddHostedService<CierreSubastasWorker>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
