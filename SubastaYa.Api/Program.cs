@@ -1,6 +1,6 @@
-
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Api.Data;
+using SubastaYa.Api.Middleware;
 using SubastaYa.Api.Servicios;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +14,11 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<PujaService>();
 builder.Services.AddScoped<BilleteraService>();
 builder.Services.AddScoped<AuditoriaService>();
-
+builder.Services.AddScoped<CategoriaService>();
+builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<SubastaService>();
+builder.Services.AddScoped<TransaccionLedgerService>();
+builder.Services.AddScoped<SubastaService>();
 // Worker que revisa y cierra automáticamente
 // las subastas vencidas.
 builder.Services.AddHostedService<CierreSubastasWorker>();
@@ -42,9 +46,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<ApiVersionMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
-

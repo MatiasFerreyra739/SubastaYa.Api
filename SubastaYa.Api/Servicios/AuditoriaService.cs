@@ -1,4 +1,5 @@
-﻿using SubastaYa.Api.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using SubastaYa.Api.Data;
 using SubastaYa.Api.Models;
 
 namespace SubastaYa.Api.Servicios
@@ -10,6 +11,18 @@ namespace SubastaYa.Api.Servicios
         public AuditoriaService(ApplicationDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<List<Auditoria_Log>> GetAuditoriasAsync()
+        {
+            return await _context.Auditorias_Log
+                .ToListAsync();
+        }
+
+        public async Task<Auditoria_Log?> GetAuditoriaAsync(int id)
+        {
+            return await _context.Auditorias_Log
+                .FindAsync(id);
         }
 
         public async Task RegistrarAsync(

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SubastaYa.Api.Data;
 using SubastaYa.Api.Models;
+using SubastaYa.Api.Servicios;
 
 namespace SubastaYa.Api.Controllers
 {
@@ -9,17 +8,18 @@ namespace SubastaYa.Api.Controllers
     [Route("api/[controller]")]
     public class SubastasController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly SubastaService _subastaService;
 
-        public SubastasController(ApplicationDbContext context)
+        public SubastasController(SubastaService subastaService)
         {
-            _context = context;
+            _subastaService = subastaService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetSubastas()
         {
-            var subastas = await _context.Subastas.ToListAsync();
+            var subastas =
+                await _subastaService.GetSubastasAsync();
 
             return Ok(subastas);
         }
@@ -27,7 +27,8 @@ namespace SubastaYa.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetSubasta(int id)
         {
-            var subasta = await _context.Subastas.FindAsync(id);
+            var subasta =
+                await _subastaService.GetSubastaAsync(id);
 
             if (subasta == null)
             {
@@ -38,58 +39,47 @@ namespace SubastaYa.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CrearSubasta(Subasta subasta)
+        public async Task<IActionResult> CrearSubasta(
+            Subasta subasta)
         {
-            _context.Subastas.Add(subasta);
-
-            await _context.SaveChangesAsync();
+            var subastaCreada =
+                await _subastaService
+                    .CrearSubastaAsync(subasta);
 
             return CreatedAtAction(
                 nameof(GetSubasta),
-                new { id = subasta.id },
-                subasta);
+                new { id = subastaCreada.id },
+                subastaCreada);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarSubasta(int id, Subasta subasta)
+        public async Task<IActionResult> ActualizarSubasta(
+            int id,
+            Subasta subasta)
         {
-            var subastaExistente = await _context.Subastas.FindAsync(id);
+            var subastaActualizada =
+                await _subastaService
+                    .ActualizarSubastaAsync(id, subasta);
 
-            if (subastaExistente == null)
+            if (subastaActualizada == null)
             {
                 return NotFound();
             }
 
-            subastaExistente.vendedor_id = subasta.vendedor_id;
-            subastaExistente.categoria_id = subasta.categoria_id;
-            subastaExistente.titulo = subasta.titulo;
-            subastaExistente.descripcion = subasta.descripcion;
-            subastaExistente.url_imagen = subasta.url_imagen;
-            subastaExistente.precio_base = subasta.precio_base;
-            subastaExistente.incremento_minimo = subasta.incremento_minimo;
-            subastaExistente.fecha_inicio = subasta.fecha_inicio;
-            subastaExistente.fecha_fin = subasta.fecha_fin;
-            subastaExistente.estado = subasta.estado;
-            subastaExistente.version = subasta.version;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(subastaExistente);
+            return Ok(subastaActualizada);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> EliminarSubasta(int id)
         {
-            var subasta = await _context.Subastas.FindAsync(id);
+            var eliminado =
+                await _subastaService
+                    .EliminarSubastaAsync(id);
 
-            if (subasta == null)
+            if (!eliminado)
             {
                 return NotFound();
             }
-
-            _context.Subastas.Remove(subasta);
-
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

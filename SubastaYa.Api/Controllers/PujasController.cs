@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SubastaYa.Api.Data;
 using SubastaYa.Api.Models;
 using SubastaYa.Api.Servicios;
 
@@ -10,21 +8,18 @@ namespace SubastaYa.Api.Controllers
     [Route("api/[controller]")]
     public class PujasController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
         private readonly PujaService _pujaService;
 
-        public PujasController(
-            ApplicationDbContext context,
-            PujaService pujaService)
+        public PujasController(PujaService pujaService)
         {
-            _context = context;
             _pujaService = pujaService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetPujas()
         {
-            var pujas = await _context.Pujas.ToListAsync();
+            var pujas =
+                await _pujaService.GetPujasAsync();
 
             return Ok(pujas);
         }
@@ -32,10 +27,13 @@ namespace SubastaYa.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPuja(int id)
         {
-            var puja = await _context.Pujas.FindAsync(id);
+            var puja =
+                await _pujaService.GetPujaAsync(id);
 
             if (puja == null)
+            {
                 return NotFound();
+            }
 
             return Ok(puja);
         }
@@ -45,8 +43,9 @@ namespace SubastaYa.Api.Controllers
         {
             try
             {
-                var resultado = await _pujaService
-                    .CrearPujaAsync(puja);
+                var resultado =
+                    await _pujaService
+                        .CrearPujaAsync(puja);
 
                 return CreatedAtAction(
                     nameof(GetPuja),
@@ -76,34 +75,29 @@ namespace SubastaYa.Api.Controllers
             int id,
             Puja puja)
         {
-            var pujaExistente = await _context.Pujas
-                .FindAsync(id);
+            var pujaActualizada =
+                await _pujaService
+                    .ActualizarPujaAsync(id, puja);
 
-            if (pujaExistente == null)
+            if (pujaActualizada == null)
+            {
                 return NotFound();
+            }
 
-            pujaExistente.subasta_id = puja.subasta_id;
-            pujaExistente.comprador_id = puja.comprador_id;
-            pujaExistente.monto = puja.monto;
-            pujaExistente.fecha_puja = puja.fecha_puja;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(pujaExistente);
+            return Ok(pujaActualizada);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> EliminarPuja(int id)
         {
-            var puja = await _context.Pujas
-                .FindAsync(id);
+            var eliminado =
+                await _pujaService
+                    .EliminarPujaAsync(id);
 
-            if (puja == null)
+            if (!eliminado)
+            {
                 return NotFound();
-
-            _context.Pujas.Remove(puja);
-
-            await _context.SaveChangesAsync();
+            }
 
             return NoContent();
         }

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SubastaYa.Api.Data;
 using SubastaYa.Api.Models;
+using SubastaYa.Api.Servicios;
 
 namespace SubastaYa.Api.Controllers
 {
@@ -9,18 +8,20 @@ namespace SubastaYa.Api.Controllers
     [Route("api/[controller]")]
     public class TransaccionesLedgersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly TransaccionLedgerService _transaccionLedgerService;
 
-        public TransaccionesLedgersController(ApplicationDbContext context)
+        public TransaccionesLedgersController(
+            TransaccionLedgerService transaccionLedgerService)
         {
-            _context = context;
+            _transaccionLedgerService = transaccionLedgerService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetTransaccionesLedgers()
         {
-            var transacciones = await _context.Transacciones_Ledgers
-                .ToListAsync();
+            var transacciones =
+                await _transaccionLedgerService
+                    .GetTransaccionesLedgersAsync();
 
             return Ok(transacciones);
         }
@@ -28,11 +29,14 @@ namespace SubastaYa.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTransaccionLedger(int id)
         {
-            var transaccion = await _context.Transacciones_Ledgers
-                .FindAsync(id);
+            var transaccion =
+                await _transaccionLedgerService
+                    .GetTransaccionLedgerAsync(id);
 
             if (transaccion == null)
+            {
                 return NotFound();
+            }
 
             return Ok(transaccion);
         }

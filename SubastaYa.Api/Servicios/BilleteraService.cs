@@ -13,6 +13,77 @@ namespace SubastaYa.Api.Servicios
             _context = context;
         }
 
+        public async Task<List<Billetera>> GetBilleterasAsync()
+        {
+            return await _context.Billeteras
+                .ToListAsync();
+        }
+
+        public async Task<Billetera?> GetBilleteraAsync(int id)
+        {
+            return await _context.Billeteras
+                .FindAsync(id);
+        }
+
+        public async Task<Billetera> CrearBilleteraAsync(
+            Billetera billetera)
+        {
+            _context.Billeteras.Add(billetera);
+
+            await _context.SaveChangesAsync();
+
+            return billetera;
+        }
+
+        public async Task<Billetera?> ActualizarBilleteraAsync(
+            int id,
+            Billetera billetera)
+        {
+            var billeteraExistente =
+                await _context.Billeteras.FindAsync(id);
+
+            if (billeteraExistente == null)
+            {
+                return null;
+            }
+
+            billeteraExistente.usuario_id =
+                billetera.usuario_id;
+
+            billeteraExistente.saldo_total =
+                billetera.saldo_total;
+
+            billeteraExistente.saldo_retenido =
+                billetera.saldo_retenido;
+
+            billeteraExistente.saldo_disponible =
+                billetera.saldo_disponible;
+
+            billeteraExistente.version =
+                billetera.version;
+
+            await _context.SaveChangesAsync();
+
+            return billeteraExistente;
+        }
+
+        public async Task<bool> EliminarBilleteraAsync(int id)
+        {
+            var billetera =
+                await _context.Billeteras.FindAsync(id);
+
+            if (billetera == null)
+            {
+                return false;
+            }
+
+            _context.Billeteras.Remove(billetera);
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<Billetera> DepositarAsync(
             int billeteraId,
             decimal monto)

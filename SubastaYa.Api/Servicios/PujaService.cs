@@ -17,6 +17,64 @@ namespace SubastaYa.Api.Servicios
             _auditoriaService = auditoriaService;
         }
 
+        public async Task<List<Puja>> GetPujasAsync()
+        {
+            return await _context.Pujas
+                .ToListAsync();
+        }
+
+        public async Task<Puja?> GetPujaAsync(int id)
+        {
+            return await _context.Pujas
+                .FindAsync(id);
+        }
+
+        public async Task<Puja?> ActualizarPujaAsync(
+            int id,
+            Puja puja)
+        {
+            var pujaExistente =
+                await _context.Pujas.FindAsync(id);
+
+            if (pujaExistente == null)
+            {
+                return null;
+            }
+
+            pujaExistente.subasta_id =
+                puja.subasta_id;
+
+            pujaExistente.comprador_id =
+                puja.comprador_id;
+
+            pujaExistente.monto =
+                puja.monto;
+
+            pujaExistente.fecha_puja =
+                puja.fecha_puja;
+
+            await _context.SaveChangesAsync();
+
+            return pujaExistente;
+        }
+
+        public async Task<bool> EliminarPujaAsync(int id)
+        {
+            var puja =
+                await _context.Pujas.FindAsync(id);
+
+            if (puja == null)
+            {
+                return false;
+            }
+
+            _context.Pujas.Remove(puja);
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<Puja> CrearPujaAsync(Puja puja)
         {
             await using var transaction =
