@@ -1,0 +1,31 @@
+# === .NET ===
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.csproj.user
+
+# === Rider ===
+.idea/
+*.sln.iml
+
+# === VS Code ===
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+
+# === Env ===
+.env
+*.env.local
+
+# === Build output ===
+publish/ 
