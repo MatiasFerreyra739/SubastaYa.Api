@@ -11,7 +11,7 @@
 <body>
     <div id="navbar-container"></div>
 
-    <main class="container py-4">
+    <main class="container py-4" data-sys-render="auto">
         <h1 class="mb-4"><i class="bi bi-wallet2"></i> Mi billetera</h1>
 
         <div class="row g-3 mb-4">
@@ -28,6 +28,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="col-12 col-md-4">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
@@ -41,6 +42,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="col-12 col-md-4">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
@@ -60,11 +62,13 @@
             <div class="card-body">
                 <h5 class="card-title">Cargar saldo</h5>
                 <p class="text-muted small">Acreditá saldo simulado a tu billetera.</p>
+
                 <form id="form-deposito" class="row g-2 align-items-end">
                     <div class="col-12 col-md-4">
                         <label class="form-label small">Monto</label>
                         <input type="number" id="monto-deposito" class="form-control" min="1" step="any" required>
                     </div>
+
                     <div class="col-12 col-md-3">
                         <button type="submit" class="btn btn-success w-100" id="btn-depositar">
                             <i class="bi bi-plus-circle"></i> Depositar
@@ -77,6 +81,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title mb-3">Historial de movimientos</h5>
+
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
@@ -87,8 +92,11 @@
                                 <th class="text-end">Monto</th>
                             </tr>
                         </thead>
+
                         <tbody id="tabla-movimientos">
-                            <tr><td colspan="4" class="text-center text-muted py-4">Cargando…</td></tr>
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">Cargando…</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
