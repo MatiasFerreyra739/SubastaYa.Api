@@ -10,52 +10,74 @@ namespace SubastaYa.Api.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public UserActivitiesController(
-            ApplicationDbContext context)
+        public UserActivitiesController(ApplicationDbContext context)
         {
             _context = context;
         }
 
         [HttpGet("bids")]
-        public async Task<IActionResult> GetMisPujas(
-            int usuarioId)
+        public async Task<IActionResult> GetMisPujas(int usuarioId)
         {
-            var pujas =
-                await _context.Pujas
+            var subastas =
+                await _context.Subastas
                     .AsNoTracking()
-                    .Where(
-                        p => p.comprador_id ==
-                        usuarioId)
-                    .OrderByDescending(
-                        p => p.fecha_puja)
                     .ToListAsync();
 
-            var resultado =
-                new List<object>();
+            var resultado = new List<object>();
 
-            foreach (var puja in pujas)
+            foreach (var subasta in subastas)
             {
-                var subasta =
-                    await _context.Subastas
+                var pujas =
+                    await _context.Pujas
                         .AsNoTracking()
-                        .FirstOrDefaultAsync(
-                            s => s.id ==
-                            puja.subasta_id);
+                        .Where(p =>
+                            p.subasta_id ==
+                            subasta.id)
+                        .OrderByDescending(
+                            p => p.fecha_puja)
+                        .ToListAsync();
 
-                if (subasta == null)
-                {
+                var misPujas =
+                    pujas
+                        .Where(p =>
+                            p.comprador_id ==
+                            usuarioId)
+                        .ToList();
+
+                if (misPujas.Count == 0)
                     continue;
-                }
+
+                var ultimaPuja =
+                    pujas.FirstOrDefault();
+
+                var miPuja =
+                    misPujas.Max(
+                        p => p.monto);
+
+                var pujaActual =
+                    ultimaPuja?.monto ??
+                    subasta.precio_base;
+
+                var esLider =
+                    ultimaPuja != null &&
+                    ultimaPuja.comprador_id ==
+                    usuarioId;
+
+                var gano =
+                    subasta.estado ==
+                    "FINALIZADA" &&
+                    esLider;
 
                 resultado.Add(new
                 {
-                    id = puja.id,
-                    subastaId = puja.subasta_id,
+                    subastaId = subasta.id,
                     titulo = subasta.titulo,
-                    monto = puja.monto,
-                    fechaPuja = puja.fecha_puja,
-                    estado = subasta.estado,
-                    fechaFin = subasta.fecha_fin
+                    urlImagen = subasta.url_imagen,
+                    subastaEstado = subasta.estado,
+                    miPuja,
+                    pujaActual,
+                    esLider,
+                    gano
                 });
             }
 
@@ -69,50 +91,52 @@ namespace SubastaYa.Api.Controllers
             var subastas =
                 await _context.Subastas
                     .AsNoTracking()
-                    .Where(
-                        s => s.vendedor_id ==
+                    .Where(s =>
+                        s.vendedor_id ==
                         usuarioId)
                     .OrderByDescending(
                         s => s.fecha_inicio)
                     .ToListAsync();
 
-            var resultado =
-                new List<object>();
+            var resultado = new List<object>();
 
             foreach (var subasta in subastas)
             {
                 var cantidadPujas =
                     await _context.Pujas
                         .CountAsync(
-                            p => p.subasta_id ==
-                            subasta.id);
+                            p =>
+                                p.subasta_id ==
+                                subasta.id);
 
                 var ultimaPuja =
                     await _context.Pujas
                         .AsNoTracking()
                         .Where(
-                            p => p.subasta_id ==
-                            subasta.id)
+                            p =>
+                                p.subasta_id ==
+                                subasta.id)
                         .OrderByDescending(
                             p => p.fecha_puja)
                         .FirstOrDefaultAsync();
+
+                var recaudacion =
+                    subasta.estado ==
+                    "FINALIZADA"
+                        ? ultimaPuja?.monto
+                        : 0;
 
                 resultado.Add(new
                 {
                     id = subasta.id,
                     titulo = subasta.titulo,
-                    descripcion = subasta.descripcion,
-                    precioBase = subasta.precio_base,
-                    incrementoMinimo =
-                        subasta.incremento_minimo,
+                    urlImagen = subasta.url_imagen,
+                    estado = subasta.estado,
                     pujaActual =
-                        ultimaPuja?.monto,
+                        ultimaPuja?.monto ??
+                        subasta.precio_base,
                     cantidadPujas,
-                    fechaInicio =
-                        subasta.fecha_inicio,
-                    fechaFin =
-                        subasta.fecha_fin,
-                    estado = subasta.estado
+                    recaudacion
                 });
             }
 

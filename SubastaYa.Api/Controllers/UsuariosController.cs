@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SubastaYa.Api.Data;
 using SubastaYa.Api.Models;
+using SubastaYa.Api.Servicios;
 
 namespace SubastaYa.Api.Controllers
 {
@@ -9,17 +8,18 @@ namespace SubastaYa.Api.Controllers
     [Route("api/[controller]")]
     public class UsuariosController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly UsuarioService _usuarioService;
 
-        public UsuariosController(ApplicationDbContext context)
+        public UsuariosController(UsuarioService usuarioService)
         {
-            _context = context;
+            _usuarioService = usuarioService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetUsuarios()
         {
-            var usuarios = await _context.Usuarios.ToListAsync();
+            var usuarios =
+                await _usuarioService.GetUsuariosAsync();
 
             return Ok(usuarios);
         }
@@ -27,7 +27,8 @@ namespace SubastaYa.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var usuario =
+                await _usuarioService.GetUsuarioAsync(id);
 
             if (usuario == null)
             {
@@ -38,51 +39,49 @@ namespace SubastaYa.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CrearUsuario(Usuario usuario)
+        public async Task<IActionResult> CrearUsuario(
+            Usuario usuario)
         {
-            _context.Usuarios.Add(usuario);
-
-            await _context.SaveChangesAsync();
+            var usuarioCreado =
+                await _usuarioService
+                    .CrearUsuarioAsync(usuario);
 
             return CreatedAtAction(
                 nameof(GetUsuario),
-                new { id = usuario.id },
-                usuario);
+                new { id = usuarioCreado.id },
+                usuarioCreado);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarUsuario(int id, Usuario usuario)
+        public async Task<IActionResult> ActualizarUsuario(
+            int id,
+            Usuario usuario)
         {
-            var usuarioExistente = await _context.Usuarios.FindAsync(id);
+            var usuarioActualizado =
+                await _usuarioService
+                    .ActualizarUsuarioAsync(
+                        id,
+                        usuario);
 
-            if (usuarioExistente == null)
+            if (usuarioActualizado == null)
             {
                 return NotFound();
             }
 
-            usuarioExistente.email = usuario.email;
-            usuarioExistente.nombre = usuario.nombre;
-            usuarioExistente.password_hash = usuario.password_hash;
-            usuarioExistente.fecha_registro = usuario.fecha_registro;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(usuarioExistente);
+            return Ok(usuarioActualizado);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> EliminarUsuario(int id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
+            var eliminado =
+                await _usuarioService
+                    .EliminarUsuarioAsync(id);
 
-            if (usuario == null)
+            if (!eliminado)
             {
                 return NotFound();
             }
-
-            _context.Usuarios.Remove(usuario);
-
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

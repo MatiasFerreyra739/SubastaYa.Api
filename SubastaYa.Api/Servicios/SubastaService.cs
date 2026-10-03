@@ -112,72 +112,119 @@ namespace SubastaYa.Api.Servicios
         // ============================================================
 
         public async Task<List<SubastaListadoDto>>
-            GetSubastasListadoAsync(
-                int? usuarioId = null)
+    GetSubastasListadoAsync(
+        int? usuarioId = null,
+        string? estado = null,
+        int? categoriaId = null,
+        decimal? precioMin = null,
+        decimal? precioMax = null,
+        string? orden = null)
+{
+    var consulta =
+        _context.Subastas
+            .AsNoTracking()
+            .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(estado))
+    {
+        consulta = consulta.Where(
+            s => s.estado == estado);
+    }
+
+    if (categoriaId.HasValue)
+    {
+        consulta = consulta.Where(
+            s => s.categoria_id == categoriaId.Value);
+    }
+
+    if (precioMin.HasValue)
+    {
+        consulta = consulta.Where(
+            s => s.precio_base >= precioMin.Value);
+    }
+
+    if (precioMax.HasValue)
+    {
+        consulta = consulta.Where(
+            s => s.precio_base <= precioMax.Value);
+    }
+
+    consulta = orden switch
+    {
+        "precio-asc" =>
+            consulta.OrderBy(s => s.precio_base),
+
+        "precio-desc" =>
+            consulta.OrderByDescending(s => s.precio_base),
+
+        "fecha-asc" =>
+            consulta.OrderBy(s => s.fecha_fin),
+
+        "fecha-desc" =>
+            consulta.OrderByDescending(s => s.fecha_fin),
+
+        _ =>
+            consulta.OrderByDescending(s => s.fecha_inicio)
+    };
+
+    var subastas = await consulta.ToListAsync();
+
+    var resultado =
+        new List<SubastaListadoDto>();
+
+    foreach (var subasta in subastas)
+    {
+        var categoria =
+            await _context.Categorias
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    c => c.Id == subasta.categoria_id);
+
+        var pujas =
+            await _context.Pujas
+                .AsNoTracking()
+                .Where(
+                    p => p.subasta_id == subasta.id)
+                .OrderByDescending(
+                    p => p.fecha_puja)
+                .ToListAsync();
+
+        var ultimaPuja =
+            pujas.FirstOrDefault();
+
+        int? ultimaPujaUsuarioId = null;
+
+        if (usuarioId.HasValue &&
+            ultimaPuja != null &&
+            ultimaPuja.comprador_id ==
+            usuarioId.Value)
         {
-            var subastas =
-                await _context.Subastas
-                    .AsNoTracking()
-                    .ToListAsync();
-
-            var resultado =
-                new List<SubastaListadoDto>();
-
-            foreach (var subasta in subastas)
-            {
-                var categoria =
-                    await _context.Categorias
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(
-                            c => c.Id ==
-                            subasta.categoria_id);
-
-                var pujas =
-                    await _context.Pujas
-                        .AsNoTracking()
-                        .Where(
-                            p => p.subasta_id ==
-                            subasta.id)
-                        .OrderByDescending(
-                            p => p.fecha_puja)
-                        .ToListAsync();
-
-                var ultimaPuja =
-                    pujas.FirstOrDefault();
-
-                int? ultimaPujaUsuarioId = null;
-
-                if (usuarioId.HasValue &&
-                    ultimaPuja != null &&
-                    ultimaPuja.comprador_id ==
-                    usuarioId.Value)
-                {
-                    ultimaPujaUsuarioId =
-                        ultimaPuja.comprador_id;
-                }
-
-                resultado.Add(
-                    new SubastaListadoDto(
-                        subasta.id,
-                        subasta.titulo,
-                        subasta.descripcion,
-                        subasta.url_imagen,
-                        subasta.categoria_id,
-                        categoria?.nombre ?? string.Empty,
-                        subasta.precio_base,
-                        subasta.incremento_minimo,
-                        ultimaPuja?.monto,
-                        pujas.Count,
-                        subasta.fecha_inicio,
-                        subasta.fecha_fin,
-                        subasta.estado,
-                        ultimaPujaUsuarioId
-                    )
-                );
-            }
-
-            return resultado;
+            ultimaPujaUsuarioId =
+                ultimaPuja.comprador_id;
         }
+
+        resultado.Add(
+            new SubastaListadoDto(
+                subasta.id,
+                subasta.titulo,
+                subasta.descripcion,
+                subasta.url_imagen,
+                subasta.categoria_id,
+                categoria?.nombre ?? string.Empty,
+                subasta.precio_base,
+                subasta.incremento_minimo,
+                ultimaPuja?.monto,
+                pujas.Count,
+                subasta.fecha_inicio,
+                subasta.fecha_fin,
+                subasta.estado,
+                ultimaPujaUsuarioId
+            )
+        );
+    }
+
+    return resultado;
+}
 
         public async Task<SubastaDetalleDto?>
             GetSubastaDetalleAsync(

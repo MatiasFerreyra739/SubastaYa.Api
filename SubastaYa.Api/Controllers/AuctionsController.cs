@@ -16,13 +16,24 @@ namespace SubastaYa.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAuctions()
+        public async Task<IActionResult> GetAuctions(
+            string? estado = null,
+            int? categoriaId = null,
+            decimal? precioMin = null,
+            decimal? precioMax = null,
+            string? orden = null)
         {
             int? usuarioId = ObtenerUsuarioId();
 
             var subastas =
                 await _subastaService
-                    .GetSubastasListadoAsync(usuarioId);
+                    .GetSubastasListadoAsync(
+                        usuarioId,
+                        estado,
+                        categoriaId,
+                        precioMin,
+                        precioMax,
+                        orden);
 
             return Ok(subastas);
         }

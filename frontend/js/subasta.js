@@ -1,5 +1,3 @@
-// Lógica de subasta.html — Sala en vivo
-
 let subastaId = null;
 let subastaActual = null;
 let intervaloPolling = null;
@@ -27,10 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await cargarSubasta();
 
     iniciarSignalR();
-
-    // Se mantiene como respaldo mientras verificamos SignalR.
     iniciarPolling();
-
     iniciarReloj();
 });
 
@@ -39,11 +34,9 @@ async function cargarSubasta() {
 
     if (!res.ok) {
         document.getElementById('loader-principal').classList.add('d-none');
-
         mostrarToast('Subasta no encontrada', 'error');
 
         setTimeout(() => location.href = 'index.html', 1500);
-
         return;
     }
 
@@ -115,15 +108,9 @@ function renderSubasta() {
 
 function renderEstadoUsuario() {
     const s = subastaActual;
-
-    const badge =
-        document.getElementById('estado-usuario');
-
-    const texto =
-        document.getElementById('estado-texto');
-
-    const userId =
-        Number(getUserId());
+    const badge = document.getElementById('estado-usuario');
+    const texto = document.getElementById('estado-texto');
+    const userId = Number(getUserId());
 
     if (!s.ultimaPujaUsuarioId || s.estado !== 'ACTIVA') {
         badge.classList.add('d-none');
@@ -136,20 +123,17 @@ function renderEstadoUsuario() {
         badge.className =
             'text-center p-2 rounded bg-success text-white';
 
-        texto.textContent =
-            '¡Estás liderando!';
+        texto.textContent = '¡Estás liderando!';
     } else {
         badge.className =
             'text-center p-2 rounded bg-warning';
 
-        texto.textContent =
-            'Fuiste superado';
+        texto.textContent = 'Fuiste superado';
     }
 }
 
 function renderHistorial(pujas) {
-    const div =
-        document.getElementById('historial');
+    const div = document.getElementById('historial');
 
     if (!pujas || pujas.length === 0) {
         div.innerHTML =
@@ -173,13 +157,10 @@ function renderHistorial(pujas) {
                         <div class="fw-bold small">
                             ${p.seudonimo}
                         </div>
-
-                        <div class="text-muted"
-                             style="font-size:.75rem;">
+                        <div class="text-muted" style="font-size:.75rem;">
                             ${formatearFecha(p.fechaPuja)}
                         </div>
                     </div>
-
                     <div class="fw-bold ${i === 0 ? 'text-success' : ''}">
                         ${formatearMoneda(p.monto)}
                     </div>
@@ -188,123 +169,64 @@ function renderHistorial(pujas) {
             .join('');
 }
 
-/*
- * ============================
- * SIGNALR
- * ============================
- */
-
 async function iniciarSignalR() {
-
     if (typeof signalR === 'undefined') {
         console.error('SignalR no está cargado.');
         return;
     }
 
     try {
-
         conexionSignalR =
             new signalR.HubConnectionBuilder()
                 .withUrl('https://localhost:7113/hubs/subastas')
                 .withAutomaticReconnect()
                 .build();
 
-        /*
-         * Evento enviado por el backend cuando
-         * una puja fue registrada correctamente.
-         */
-        conexionSignalR.on(
-            'NuevaPuja',
-            async (data) => {
+        conexionSignalR.on('NuevaPuja', async (data) => {
+            const fechaFinAnterior = ultimaFechaFin;
 
-                console.log(
-                    'Nueva puja recibida por SignalR:',
-                    data
+            await cargarSubasta();
+
+            if (
+                fechaFinAnterior &&
+                data.fechaFin &&
+                new Date(data.fechaFin) >
+                new Date(fechaFinAnterior)
+            ) {
+                mostrarToast(
+                    'Tiempo extendido por anti-sniping',
+                    'warning'
                 );
-
-                /*
-                 * Actualizamos la información completa
-                 * de la subasta desde la API.
-                 *
-                 * Esto nos permite obtener:
-                 * - puja actual
-                 * - cantidad de pujas
-                 * - historial
-                 * - líder
-                 * - fecha de finalización
-                 */
-                await cargarSubasta();
-
-                /*
-                 * Si la fecha de finalización cambió,
-                 * mostramos el aviso de anti-sniping.
-                 */
-                if (
-                    ultimaFechaFin &&
-                    data.fechaFin &&
-                    new Date(data.fechaFin) >
-                    new Date(ultimaFechaFin)
-                ) {
-                    mostrarToast(
-                        '⏱ Tiempo extendido por anti-sniping',
-                        'warning'
-                    );
-                }
             }
-        );
+        });
 
         await conexionSignalR.start();
 
-        console.log(
-            'SignalR conectado correctamente.'
-        );
-
-        /*
-         * Nos unimos al grupo correspondiente
-         * a esta subasta.
-         */
         await conexionSignalR.invoke(
             'UnirseASubasta',
             Number(subastaId)
         );
-
-        console.log(
-            `Unido a la subasta ${subastaId}.`
-        );
-
     } catch (error) {
-
         console.error(
             'Error conectando con SignalR:',
             error
         );
-
-        /*
-         * El polling continúa funcionando como
-         * mecanismo de respaldo.
-         */
     }
 }
 
 function iniciarPolling() {
-
     if (intervaloPolling) {
         clearInterval(intervaloPolling);
     }
 
     intervaloPolling =
         setInterval(async () => {
-
             const res =
                 await api.getSubasta(subastaId);
 
             if (!res.ok) {
-
                 if (res.status === 404) {
-
-                    clearInterval(
-                        intervaloPolling
-                    );
+                    clearInterval(intervaloPolling);
 
                     mostrarToast(
                         'La subasta ya no está disponible',
@@ -323,30 +245,24 @@ function iniciarPolling() {
                 new Date(ultimaFechaFin)
             ) {
                 mostrarToast(
-                    '⏱ Tiempo extendido por anti-sniping',
+                    'Tiempo extendido por anti-sniping',
                     'warning'
                 );
             }
 
-            ultimaFechaFin =
-                nueva.fechaFin;
-
-            subastaActual =
-                nueva;
+            ultimaFechaFin = nueva.fechaFin;
+            subastaActual = nueva;
 
             renderSubasta();
-
         }, 2000);
 }
 
 function iniciarReloj() {
-
     if (intervaloReloj) {
         clearInterval(intervaloReloj);
     }
 
     const actualizar = () => {
-
         if (!subastaActual) {
             return;
         }
@@ -354,16 +270,10 @@ function iniciarReloj() {
         const el =
             document.getElementById('timer');
 
-        const {
-            texto,
-            clase
-        } =
-            estadoTimer(
-                subastaActual.fechaFin
-            );
+        const { texto, clase } =
+            estadoTimer(subastaActual.fechaFin);
 
         el.textContent = texto;
-
         el.className =
             'timer-grande ' + clase;
     };
@@ -371,14 +281,10 @@ function iniciarReloj() {
     actualizar();
 
     intervaloReloj =
-        setInterval(
-            actualizar,
-            1000
-        );
+        setInterval(actualizar, 1000);
 }
 
 async function onPujar() {
-
     const monto =
         Number(
             document.getElementById('puja-monto').value
@@ -390,7 +296,6 @@ async function onPujar() {
         );
 
     if (!monto || monto <= 0) {
-
         mostrarToast(
             'Ingresá un monto válido',
             'warning'
@@ -400,7 +305,6 @@ async function onPujar() {
     }
 
     if (monto < sugerida) {
-
         mostrarToast(
             `El monto mínimo es ${formatearMoneda(sugerida)}`,
             'warning'
@@ -429,7 +333,6 @@ async function onPujar() {
         `<i class="bi bi-hammer"></i> Confirmar puja`;
 
     if (res.ok) {
-
         mostrarToast(
             '¡Puja registrada!',
             'success'
@@ -439,60 +342,41 @@ async function onPujar() {
             'puja-monto'
         ).value = '';
 
-        /*
-         * La actualización principal llegará
-         * por SignalR.
-         *
-         * Por ahora también recargamos para
-         * mantener el comportamiento anterior.
-         */
-        await cargarSubasta();
-
         return;
     }
 
     switch (res.status) {
-
         case 409:
-
             mostrarToast(
                 'Otra puja se registró antes. Actualizando…',
                 'warning'
             );
 
             await cargarSubasta();
-
             break;
 
         case 422:
-
             mostrarToast(
                 'Fondos insuficientes',
                 'error'
             );
-
             break;
 
         case 400:
-
             mostrarToast(
                 res.error ?? 'Datos inválidos',
                 'error'
             );
-
             break;
 
         case 404:
-
             mostrarToast(
                 'La subasta no existe',
                 'error'
             );
-
             break;
 
         default:
-
             mostrarToast(
                 res.error ?? 'Error al pujar',
                 'error'
@@ -500,36 +384,28 @@ async function onPujar() {
     }
 }
 
-window.addEventListener(
-    'beforeunload',
-    async () => {
+window.addEventListener('beforeunload', async () => {
+    if (intervaloPolling) {
+        clearInterval(intervaloPolling);
+    }
 
-        if (intervaloPolling) {
-            clearInterval(intervaloPolling);
-        }
+    if (intervaloReloj) {
+        clearInterval(intervaloReloj);
+    }
 
-        if (intervaloReloj) {
-            clearInterval(intervaloReloj);
-        }
+    if (conexionSignalR) {
+        try {
+            await conexionSignalR.invoke(
+                'SalirDeSubasta',
+                Number(subastaId)
+            );
 
-        if (conexionSignalR) {
-
-            try {
-
-                await conexionSignalR.invoke(
-                    'SalirDeSubasta',
-                    Number(subastaId)
-                );
-
-                await conexionSignalR.stop();
-
-            } catch (error) {
-
-                console.error(
-                    'Error cerrando SignalR:',
-                    error
-                );
-            }
+            await conexionSignalR.stop();
+        } catch (error) {
+            console.error(
+                'Error cerrando SignalR:',
+                error
+            );
         }
     }
-);
+});
