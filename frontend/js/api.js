@@ -1,4 +1,3 @@
-```javascript
 // =====================================================================
 // Capa única de comunicación con la API.
 // USE_MOCK = true  → devuelve datos falsos, no llama al backend.
@@ -6,7 +5,7 @@
 // =====================================================================
 
 const USE_MOCK = false;
-const API_BASE = 'https://localhost:7113/api/v1';
+const API_BASE = 'http://localhost:5013/api/v1';
 
 function getUserId() {
     return localStorage.getItem('userId') ?? '2';
