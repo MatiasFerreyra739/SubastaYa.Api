@@ -1,3 +1,4 @@
+```javascript
 document.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([cargarCompras(), cargarPublicaciones()]);
 });
@@ -80,10 +81,10 @@ async function cargarPublicaciones() {
 
     lista.innerHTML = res.data.map(item => {
         const badge = {
-            ACTIVA:     '<span class="badge bg-success">Activa</span>',
+            ACTIVA: '<span class="badge bg-success">Activa</span>',
             PROGRAMADA: '<span class="badge bg-info">Programada</span>',
             FINALIZADA: '<span class="badge bg-secondary">Finalizada</span>',
-            DESIERTA:   '<span class="badge bg-dark">Desierta</span>'
+            DESIERTA: '<span class="badge bg-dark">Desierta</span>'
         }[item.estado] ?? '';
 
         return `
