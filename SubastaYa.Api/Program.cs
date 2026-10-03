@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SubastaYa.Api.Data;
+using SubastaYa.Api.Hubs;
 using SubastaYa.Api.Middleware;
 using SubastaYa.Api.Servicios;
 
@@ -11,6 +12,19 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddControllers();
 
+builder.Services.AddSignalR();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddScoped<PujaService>();
 builder.Services.AddScoped<BilleteraService>();
 builder.Services.AddScoped<AuditoriaService>();
@@ -18,7 +32,7 @@ builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<SubastaService>();
 builder.Services.AddScoped<TransaccionLedgerService>();
-builder.Services.AddScoped<SubastaService>();
+
 // Worker que revisa y cierra automáticamente
 // las subastas vencidas.
 builder.Services.AddHostedService<CierreSubastasWorker>();
@@ -46,10 +60,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("Frontend");
+
 app.UseMiddleware<ApiVersionMiddleware>();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<SubastaHub>("/hubs/subastas");
 
 app.Run();

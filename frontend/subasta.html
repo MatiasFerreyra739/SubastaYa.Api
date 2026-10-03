@@ -19,30 +19,64 @@
 
         <div id="contenido" class="d-none">
             <div class="row g-4">
+
                 <!-- Columna izquierda: imagen + info -->
                 <div class="col-12 col-lg-7">
                     <div class="card border-0 shadow-sm">
-                        <img id="subasta-imagen" src="https://via.placeholder.com/800x400?text=SubastaYa"
-                             class="card-img-top" style="height:320px;object-fit:cover;"
+                        <img id="subasta-imagen"
+                             src="https://via.placeholder.com/800x400?text=SubastaYa"
+                             class="card-img-top"
+                             style="height:320px;object-fit:cover;"
                              onerror="this.src='https://via.placeholder.com/800x400?text=SubastaYa'">
+
                         <div class="card-body">
-                            <span id="subasta-categoria" class="badge bg-secondary mb-2"></span>
-                            <span id="subasta-estado" class="badge bg-info mb-2"></span>
-                            <h2 id="subasta-titulo" class="card-title"></h2>
-                            <p id="subasta-descripcion" class="text-muted"></p>
+                            <span id="subasta-categoria"
+                                  class="badge bg-secondary mb-2"></span>
+
+                            <span id="subasta-estado"
+                                  class="badge bg-info mb-2"></span>
+
+                            <h2 id="subasta-titulo"
+                                class="card-title"></h2>
+
+                            <p id="subasta-descripcion"
+                               class="text-muted"></p>
+
                             <div class="row text-center mt-3">
+
                                 <div class="col-4">
-                                    <div class="small text-muted">Precio base</div>
-                                    <div class="fw-bold" id="subasta-precio-base">—</div>
+                                    <div class="small text-muted">
+                                        Precio base
+                                    </div>
+
+                                    <div class="fw-bold"
+                                         id="subasta-precio-base">
+                                        —
+                                    </div>
                                 </div>
+
                                 <div class="col-4">
-                                    <div class="small text-muted">Incremento mín.</div>
-                                    <div class="fw-bold" id="subasta-incremento">—</div>
+                                    <div class="small text-muted">
+                                        Incremento mín.
+                                    </div>
+
+                                    <div class="fw-bold"
+                                         id="subasta-incremento">
+                                        —
+                                    </div>
                                 </div>
+
                                 <div class="col-4">
-                                    <div class="small text-muted">Ofertas</div>
-                                    <div class="fw-bold" id="subasta-cantidad-pujas">—</div>
+                                    <div class="small text-muted">
+                                        Ofertas
+                                    </div>
+
+                                    <div class="fw-bold"
+                                         id="subasta-cantidad-pujas">
+                                        —
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -50,68 +84,152 @@
 
                 <!-- Columna derecha: timer + puja + historial -->
                 <div class="col-12 col-lg-5">
+
                     <!-- Timer -->
                     <div class="card border-0 shadow-sm mb-3">
                         <div class="card-body text-center">
-                            <div class="text-muted small mb-1">Tiempo restante</div>
-                            <div id="timer" class="timer-grande">--:--</div>
+
+                            <div class="text-muted small mb-1">
+                                Tiempo restante
+                            </div>
+
+                            <div id="timer"
+                                 class="timer-grande">
+                                --:--
+                            </div>
+
                         </div>
                     </div>
 
                     <!-- Puja actual + estado -->
                     <div class="card border-0 shadow-sm mb-3">
                         <div class="card-body">
+
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted small">Puja actual</span>
-                                <span id="puja-actual" class="h4 mb-0 text-primary">—</span>
+
+                                <span class="text-muted small">
+                                    Puja actual
+                                </span>
+
+                                <span id="puja-actual"
+                                      class="h4 mb-0 text-primary">
+                                    —
+                                </span>
+
                             </div>
-                            <div id="estado-usuario" class="text-center p-2 rounded d-none">
-                                <i class="bi bi-trophy-fill"></i> <span id="estado-texto">—</span>
+
+                            <div id="estado-usuario"
+                                 class="text-center p-2 rounded d-none">
+
+                                <i class="bi bi-trophy-fill"></i>
+
+                                <span id="estado-texto">
+                                    —
+                                </span>
+
                             </div>
+
                         </div>
                     </div>
 
                     <!-- Consola de puja -->
                     <div class="card border-0 shadow-sm mb-3">
                         <div class="card-body">
-                            <h6 class="card-title">Pujar</h6>
+
+                            <h6 class="card-title">
+                                Pujar
+                            </h6>
+
                             <div class="mb-2">
-                                <label class="form-label small text-muted">Sugerencia automática</label>
+
+                                <label class="form-label small text-muted">
+                                    Sugerencia automática
+                                </label>
+
                                 <div class="d-flex gap-2">
-                                    <input type="number" id="puja-sugerida" class="form-control" readonly>
-                                    <button class="btn btn-outline-primary" id="btn-usar-sugerida">Usar</button>
+
+                                    <input type="number"
+                                           id="puja-sugerida"
+                                           class="form-control"
+                                           readonly>
+
+                                    <button class="btn btn-outline-primary"
+                                            id="btn-usar-sugerida">
+                                        Usar
+                                    </button>
+
                                 </div>
+
                             </div>
+
                             <div class="mb-3">
-                                <label class="form-label small text-muted">Monto personalizado</label>
-                                <input type="number" id="puja-monto" class="form-control" min="1" step="any">
+
+                                <label class="form-label small text-muted">
+                                    Monto personalizado
+                                </label>
+
+                                <input type="number"
+                                       id="puja-monto"
+                                       class="form-control"
+                                       min="1"
+                                       step="any">
+
                             </div>
-                            <button id="btn-pujar" class="btn btn-primary w-100">
-                                <i class="bi bi-hammer"></i> Confirmar puja
+
+                            <button id="btn-pujar"
+                                    class="btn btn-primary w-100">
+
+                                <i class="bi bi-hammer"></i>
+                                Confirmar puja
+
                             </button>
+
                         </div>
                     </div>
 
                     <!-- Historial -->
                     <div class="card border-0 shadow-sm">
+
                         <div class="card-body">
-                            <h6 class="card-title">Historial de ofertas</h6>
-                            <div id="historial" style="max-height:280px;overflow-y:auto;">
-                                <p class="text-muted small mb-0">Sin ofertas aún.</p>
+
+                            <h6 class="card-title">
+                                Historial de ofertas
+                            </h6>
+
+                            <div id="historial"
+                                 style="max-height:280px;overflow-y:auto;">
+
+                                <p class="text-muted small mb-0">
+                                    Sin ofertas aún.
+                                </p>
+
                             </div>
+
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </main>
 
-    <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+    <div id="toast-container"
+         class="toast-container position-fixed bottom-0 end-0 p-3">
+    </div>
 
+    <!-- Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Scripts propios -->
     <script src="js/ui.js"></script>
     <script src="js/api.js"></script>
     <script src="js/navbar.js"></script>
+
+    <!-- SignalR -->
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+
+    <!-- Lógica de la subasta -->
     <script src="js/subasta.js"></script>
+
 </body>
 </html>

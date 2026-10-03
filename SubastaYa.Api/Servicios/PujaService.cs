@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using SubastaYa.Api.Data;
+using SubastaYa.Api.Hubs;
 using SubastaYa.Api.Models;
 
 namespace SubastaYa.Api.Servicios
@@ -8,13 +10,16 @@ namespace SubastaYa.Api.Servicios
     {
         private readonly ApplicationDbContext _context;
         private readonly AuditoriaService _auditoriaService;
+        private readonly IHubContext<SubastaHub> _hubContext;
 
         public PujaService(
             ApplicationDbContext context,
-            AuditoriaService auditoriaService)
+            AuditoriaService auditoriaService,
+            IHubContext<SubastaHub> hubContext)
         {
             _context = context;
             _auditoriaService = auditoriaService;
+            _hubContext = hubContext;
         }
 
         public async Task<List<Puja>> GetPujasAsync()
@@ -87,47 +92,63 @@ namespace SubastaYa.Api.Servicios
                         s => s.id == puja.subasta_id);
 
                 if (subasta == null)
+                {
                     throw new Exception(
                         "[CODE-ERROR] - SUBASTA_NO_ENCONTRADA");
+                }
 
                 if (subasta.estado != "ACTIVA")
+                {
                     throw new Exception(
                         "[CODE-ERROR] - SUBASTA_NO_ACTIVA");
+                }
 
                 var ahora = DateTime.Now;
 
                 if (ahora < subasta.fecha_inicio ||
                     ahora >= subasta.fecha_fin)
+                {
                     throw new Exception(
                         "[CODE-ERROR] - SUBASTA_FUERA_DE_HORARIO");
+                }
 
                 var usuario = await _context.Usuarios
                     .FirstOrDefaultAsync(
                         u => u.id == puja.comprador_id);
 
                 if (usuario == null)
+                {
                     throw new Exception(
                         "[CODE-ERROR] - COMPRADOR_NO_ENCONTRADO");
+                }
 
                 if (subasta.vendedor_id == puja.comprador_id)
+                {
                     throw new Exception(
                         "[CODE-ERROR] - VENDEDOR_NO_PUEDE_PUJAR");
+                }
 
                 var billetera = await _context.Billeteras
                     .FirstOrDefaultAsync(
                         b => b.usuario_id == puja.comprador_id);
 
                 if (billetera == null)
+                {
                     throw new Exception(
                         "[CODE-ERROR] - BILLETERA_NO_ENCONTRADA");
+                }
 
                 if (puja.monto < subasta.precio_base)
+                {
                     throw new Exception(
                         "[CODE-ERROR] - MONTO_MENOR_PRECIO_BASE");
+                }
 
                 if (billetera.saldo_disponible < puja.monto)
+                {
                     throw new Exception(
                         "[CODE-ERROR] - SALDO_INSUFICIENTE");
+                }
 
                 var ultimaPuja = await _context.Pujas
                     .Where(
@@ -257,6 +278,22 @@ namespace SubastaYa.Api.Servicios
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
+
+                // Notificar a los clientes conectados
+                // a esta subasta mediante SignalR.
+                await _hubContext.Clients
+                    .Group($"subasta-{puja.subasta_id}")
+                    .SendAsync(
+                        "NuevaPuja",
+                        new
+                        {
+                            subastaId = puja.subasta_id,
+                            pujaId = puja.id,
+                            compradorId = puja.comprador_id,
+                            monto = puja.monto,
+                            fechaPuja = puja.fecha_puja,
+                            fechaFin = subasta.fecha_fin
+                        });
 
                 return puja;
             }
