@@ -264,12 +264,8 @@ namespace SubastaYa.Api.Servicios
                     _context.Auditorias_Log.Add(auditoria);
                 }
 
-                // Cada puja aceptada modifica la versión
-                // de la subasta para controlar concurrencia.
                 subasta.version++;
 
-                // Punto de sincronización utilizado únicamente
-                // durante la prueba de concurrencia.
                 if (ConcurrencyTestHook.OnSubastaLeida != null)
                 {
                     await ConcurrencyTestHook.OnSubastaLeida();
@@ -279,8 +275,6 @@ namespace SubastaYa.Api.Servicios
 
                 await transaction.CommitAsync();
 
-                // Notificar a los clientes conectados
-                // a esta subasta mediante SignalR.
                 await _hubContext.Clients
                     .Group($"subasta-{puja.subasta_id}")
                     .SendAsync(
@@ -299,7 +293,13 @@ namespace SubastaYa.Api.Servicios
             }
             catch (DbUpdateConcurrencyException)
             {
-                await transaction.RollbackAsync();
+                try
+                {
+                    await transaction.RollbackAsync();
+                }
+                catch
+                {
+                }
 
                 _context.ChangeTracker.Clear();
 
@@ -329,7 +329,13 @@ namespace SubastaYa.Api.Servicios
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+                try
+                {
+                    await transaction.RollbackAsync();
+                }
+                catch
+                {
+                }
 
                 _context.ChangeTracker.Clear();
 
