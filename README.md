@@ -550,3 +550,20 @@ Abrir el frontend:
 
 start .\\frontend\\index.html
 
+## Evidencia de la prueba de concurrencia
+
+### Script de prueba manual (bash + curl)
+
+```bash
+# Enviar dos pujas idénticas en paralelo
+curl -X POST http://localhost:5013/api/v1/subastas/1/pujas \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: 2" \
+  -d '{"monto": 46000}' &
+
+curl -X POST http://localhost:5013/api/v1/subastas/1/pujas \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: 3" \
+  -d '{"monto": 46000}' &
+
+wait

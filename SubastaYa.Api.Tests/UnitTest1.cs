@@ -20,7 +20,7 @@ namespace SubastaYa.Api.Tests
             var subastaId = 1;
             var comprador1Id = 2;
             var comprador2Id = 3;
-            var montoPuja = 125000m;
+            var montoPuja = 50000m;
 
             int versionSubastaOriginal;
             string estadoOriginal;
