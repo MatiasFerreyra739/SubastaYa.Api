@@ -18,34 +18,9 @@ namespace SubastaYa.Api.Tests
                 "Server=.\\SQLEXPRESS;Database=SubastaYaDb;Trusted_Connection=True;TrustServerCertificate=True;";
 
             var subastaId = 1;
-            var comprador1Id = 3;
-            var comprador2Id = 4;
+            var comprador1Id = 2;
+            var comprador2Id = 3;
             var montoPuja = 125000m;
-
-            await using (var contextoInicial =
-                new ApplicationDbContext(
-                    new DbContextOptionsBuilder<ApplicationDbContext>()
-                        .UseSqlServer(connectionString)
-                        .Options))
-            {
-                var subasta =
-                    await contextoInicial.Subastas
-                        .FirstAsync(s => s.id == subastaId);
-
-                var billetera2 =
-                    await contextoInicial.Billeteras
-                        .FirstAsync(b => b.usuario_id == comprador2Id);
-
-                subasta.estado = "ACTIVA";
-                subasta.fecha_inicio = DateTime.Now.AddMinutes(-10);
-                subasta.fecha_fin = DateTime.Now.AddMinutes(10);
-
-                billetera2.saldo_retenido = 0;
-                billetera2.saldo_disponible =
-                    billetera2.saldo_total;
-
-                await contextoInicial.SaveChangesAsync();
-            }
 
             int versionSubastaOriginal;
             string estadoOriginal;
@@ -105,6 +80,39 @@ namespace SubastaYa.Api.Tests
                     billetera2.version;
             }
 
+            await using (var contextoInicial =
+                new ApplicationDbContext(
+                    new DbContextOptionsBuilder<ApplicationDbContext>()
+                        .UseSqlServer(connectionString)
+                        .Options))
+            {
+                var subasta =
+                    await contextoInicial.Subastas
+                        .FirstAsync(s => s.id == subastaId);
+
+                var billetera1 =
+                    await contextoInicial.Billeteras
+                        .FirstAsync(b => b.usuario_id == comprador1Id);
+
+                var billetera2 =
+                    await contextoInicial.Billeteras
+                        .FirstAsync(b => b.usuario_id == comprador2Id);
+
+                subasta.estado = "ACTIVA";
+                subasta.fecha_inicio = DateTime.Now.AddMinutes(-10);
+                subasta.fecha_fin = DateTime.Now.AddMinutes(10);
+
+                billetera1.saldo_retenido = 0;
+                billetera1.saldo_disponible =
+                    billetera1.saldo_total;
+
+                billetera2.saldo_retenido = 0;
+                billetera2.saldo_disponible =
+                    billetera2.saldo_total;
+
+                await contextoInicial.SaveChangesAsync();
+            }
+
             var barrera =
                 new TaskCompletionSource<bool>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
@@ -117,10 +125,11 @@ namespace SubastaYa.Api.Tests
                     if (Interlocked.Increment(
                             ref contadorLecturas) == 2)
                     {
-                        barrera.SetResult(true);
+                        barrera.TrySetResult(true);
                     }
 
-                    await barrera.Task;
+                    await barrera.Task.WaitAsync(
+                        TimeSpan.FromSeconds(10));
                 };
 
             var resultados =
@@ -299,7 +308,8 @@ namespace SubastaYa.Api.Tests
                 if (ledgersNuevos.Count > 0)
                 {
                     contextoLimpieza.Transacciones_Ledgers
-                        .RemoveRange(ledgersNuevos);
+                        .RemoveRange(
+                            ledgersNuevos);
                 }
 
                 var auditoriasNuevas =
@@ -314,7 +324,8 @@ namespace SubastaYa.Api.Tests
                 if (auditoriasNuevas.Count > 0)
                 {
                     contextoLimpieza.Auditorias_Log
-                        .RemoveRange(auditoriasNuevas);
+                        .RemoveRange(
+                            auditoriasNuevas);
                 }
 
                 var subasta =
